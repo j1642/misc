@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Displays the U.S. Treasures yield curve on a given trading day.
+Displays the U.S. Treasuries yield curve on a given trading day.
 '''
 
 # XML Warning from docs.python.org:
