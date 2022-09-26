@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 '''
-Displays the U.S. Treasuries yield curve on a given trading day.
+Displays the U.S. Treasury securities yield curve (interest rate vs.
+bond duration) on a given trading day.
 '''
 
 # XML Warning from docs.python.org:
