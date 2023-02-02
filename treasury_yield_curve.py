@@ -7,7 +7,6 @@ bond duration) on a given trading day.
 
 # Note: https://docs.python.org/3/library/xml.html#xml-vulnerabilities
 
-
 import urllib.request
 import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
@@ -20,14 +19,14 @@ def prompt_date():
     try:
         print('For which trading day do you want to view the yield curve?',
               'Response format must be YYYY-MM-DD.')
-        DATE = input('>>> ')
-        assert len(DATE) == 10 and DATE[:4].isdigit() and DATE[4] == '-' \
-            and DATE[5:7].isdigit() and DATE[7] == '-' and DATE[8:10].isdigit()
+        date = input('>>> ')
+        assert len(date) == 10 and date[:4].isdigit() and date[4] == '-' \
+            and date[5:7].isdigit() and date[7] == '-' and date[8:10].isdigit()
     except AssertionError:
         print('Please enter a date in the correct format.')
         return prompt_date()
 
-    return DATE
+    return date
 
 
 def parse_xml_for_rates():
@@ -37,12 +36,19 @@ def parse_xml_for_rates():
     url = ['https://home.treasury.gov/resource-center/data-chart-center/',
            'interest-rates/pages/xml?data=daily_treasury_yield_curve&',
            'field_tdr_date_value_month=']
-    DATE = '2023-02-01'# prompt_date()
-    year, month = DATE.split('-')[0:2]
+    date = prompt_date()
+    year, month, day = date.split('-')
     url.append(year)
     url.append(month)
     url = ''.join(url)
     print('Connecting to treasury.gov...')
+
+    content_start_index = 0
+    # Treasury changed XML structure on Oct. 19, 2022.
+    IS_OLD_XML_FORMAT = int(year) <= 2022 and int(month) <= 10 \
+                        and int(day) <= 18
+    if IS_OLD_XML_FORMAT:
+        content_start_index = 1
 
     with urllib.request.urlopen(url) as page:
         tree = ET.parse(page)
@@ -51,23 +57,28 @@ def parse_xml_for_rates():
     # The XML tages in the tree variable are all prepended by a URL.
     for entry in root.findall('{http://www.w3.org/2005/Atom}entry'):
         for content in entry.find('{http://www.w3.org/2005/Atom}content'):
-            if content[0].text[:10] == DATE:
+            if content[content_start_index].text[:10] == date:
                 rates = []
                 for ind, child in enumerate(content):
-                    if ind > 0:
+                    if ind > content_start_index:
                         rates.append(float(child.text))
                 # Remove repeated 30-year rate (due to XML format)
                 rates.pop()
-                return rates, DATE
+                return rates, date
 
 
 def plot_rates(rates_and_date: tuple):
     """Generate a plot of the selected day's interest rates."""
-    rates, DATE = rates_and_date
+    rates, date = rates_and_date
+    year, month, day = date.split('-')
     x_values = (1 / 12, 1 / 6, 1 / 4, 1 / 3, 1 / 2, 1, 2, 3, 5, 7, 10, 20, 30)
+    # Treasury added a new data point on Oct. 19, 2022, the 4 month bill.
+    if int(year) <= 2022 and int(month) <= 10 and int(day) <= 18:
+        x_values = (1 / 12, 1 / 6, 1 / 4, 1 / 2, 1, 2, 3, 5, 7, 10, 20, 30)
+
     plt.xlabel('Duration (years)')
     plt.ylabel('Annualized Interest Rate (%)')
-    title = ''.join(['U.S. Treasuries Yield Curve ', '(', DATE, ')'])
+    title = ''.join(['U.S. Treasuries Yield Curve ', '(', date, ')'])
     plt.title(title)
 
     # A few more labelled tick marks on the y-axis looks nicer.
@@ -95,7 +106,7 @@ def plot_rates(rates_and_date: tuple):
         plt.plot(x_values, rates, marker='o')
         plt.show()
     except (IndexError, ValueError):
-        print(f'\nNo rates found for {DATE}. Are you sure it was a'
+        print(f'\nNo rates found for {date}. Are you sure it was a'
                'trading day?')
 
 
