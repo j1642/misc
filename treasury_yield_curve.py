@@ -51,6 +51,7 @@ def parse_xml_for_rates():
         content_start_index = 1
 
     with urllib.request.urlopen(url) as page:
+        print('Reading XML...')
         tree = ET.parse(page)
     root = tree.getroot()
 
@@ -81,28 +82,7 @@ def plot_rates(rates_and_date: tuple):
     title = ''.join(['U.S. Treasuries Yield Curve ', '(', date, ')'])
     plt.title(title)
 
-    # A few more labelled tick marks on the y-axis looks nicer.
-    # Increase amount of y-axis ticks while maintaining proportional spacing.
-    # Decimal values of ticks are multiples of 1 / SCALE_FACTOR.
     try:
-        DIFF_1M_30YR = abs(rates[-1] - rates[0])
-        if DIFF_1M_30YR > 5:
-            SCALE_FACTOR = 2
-        else:
-            SCALE_FACTOR = 4
-        yticks_start = int(rates[0]) * SCALE_FACTOR
-        yticks_end = SCALE_FACTOR * int(rates[-1]) + SCALE_FACTOR
-        yticks = range(yticks_start, yticks_end, 1)
-        yticks = [i / SCALE_FACTOR for i in yticks]
-        if len(yticks) > 11:
-            yticks_copy = yticks.copy()
-            yticks = []
-            for ind, num in enumerate(yticks_copy):
-                if ind > 0 and ind % 2 != 0:
-                    yticks.append(num)
-
-        plt.yticks(yticks, yticks)
-
         plt.plot(x_values, rates, marker='o')
         plt.show()
     except (IndexError, ValueError):
