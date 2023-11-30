@@ -39,6 +39,7 @@ def next(i, json):
         return ValueError("next() did not return")
 
 def lex(json):
+    # Convert JSON string to tokens iterable
     i = 0
     if json[0] != "{" or json[-1] != "}":
         exit("error: JSON must begin and end with '{' and '}', respectively")
@@ -49,6 +50,7 @@ def lex(json):
     return tokens
 
 def parse_array(i, tokens):
+    # Convert tokens iterable to Python object
     values = []
     while i < len(tokens):
         # Do not increment i here, increment at end of the parse_obj() loop
@@ -79,23 +81,22 @@ def parse_obj(tokens, i=1):
         token = tokens[i]
         if token == "{":
             i, child_obj = parse_obj(tokens, i + 1)
-            assert key != ""
+            assert key
             obj[key] = child_obj
             key = ""
         elif token == "}":
             return i + 1, obj
         elif token == "[":
             i, arr = parse_array(i + 1, tokens)
-            assert key != ""
+            assert key
             obj[key] = arr
             key = ""
         elif token == ":":
-            # expect value or array
-            assert key != ""
+            assert key
         elif token == ",":
-            # parse_array() should find all array delimiters
             assert key == ""
-        elif token in ("null", "true", "false"):
+        elif token in (None, True, False):
+            assert key
             obj[key] = token
             key = ""
         else:
@@ -115,4 +116,4 @@ if __name__ == "__main__":
 
     tokens = lex(json)
     obj = parse_obj(tokens)
-    print(obj)
+    print(obj[1])
