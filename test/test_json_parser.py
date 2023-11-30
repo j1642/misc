@@ -11,7 +11,7 @@ def test_lex_array():
     json = """{"list":[true, false, null, 21]}"""
     tokens = json_parser.lex(json)
     assert tokens == ["{", "list", ":",
-        "[", "true", ",", "false", ",", "null", ",", "21", "]", "}"] 
+        "[", True, ",", False, ",", None, ",", "21", "]", "}"]
 
 def test_parsing():
     json = """{"status":"SpaceTraders","version":"v2.1.2","resetDate":
