@@ -30,17 +30,27 @@ def next(i, json):
                 return (i, False)
             else:
                 i += 1
-        elif json[i].isdigit():
-            if json[i] == 0:
+        # TODO: check for negative numbers
+        elif json[i].isdigit():# or (json[i] == "-" and json[i + 1].isdigit()):
+            # if json[i] == "-":
+                # i += 1
+            if json[i] == "0":
                 raise ValueError("JSON numbers cannot have leading zeroes")
             while json[i].isdigit():
                 i += 1
             # Check for floats
-            # TODO: check for scientific notation
             if json[i] == "." and json[i + 1].isdigit():
                 i += 1
                 while json[i].isdigit():
                     i += 1
+                # Check for scientific notation
+                if json[i] == "e" or json[i] == "E":
+                    i += 1
+                    if json[i] == "+" or json[i] == "-":
+                        i += 1
+                    while json[i].isdigit():
+                        i += 1
+
             return (i, float(json[orig_i:i]))
         else:
             i += 1

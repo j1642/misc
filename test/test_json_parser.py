@@ -1,3 +1,5 @@
+import pytest
+
 import json_parser
 
 def test_lex_simple():
@@ -7,11 +9,19 @@ def test_lex_simple():
     assert tokens == ["{", "status", ":", "SpaceTraders", "}"] 
 
 def test_lex_array():
-    # Lex array of booleans, null, integer, float
-    json = """{"list":[true, false, null, 21, 33.0]}"""
+    # Lex array of booleans, null, integer, float,
+    # scientific notation,
+    json = """{"list":[true, false, null, 21, 33.0, 10.01e-1]}"""
     tokens = json_parser.lex(json)
     assert tokens == ["{", "list", ":",
-        "[", True, ",", False, ",", None, ",", 21.0, ",", 33.0, "]", "}"]
+        "[", True, ",", False, ",", None, ",", 21.0, ",", 33.0, ",", 1.001, "]", "}"]
+
+def test_leading_zero_error():
+    # Numbers with leading zeroes cause an error
+    json = """{"key":05}"""
+    with pytest.raises(ValueError) as excinfo:
+        json_parser.lex(json)
+    assert "JSON numbers cannot have leading zeroes" in str(excinfo.value)
 
 def test_parsing():
     json = """{"status":"SpaceTraders","version":"v2.1.2","resetDate":
