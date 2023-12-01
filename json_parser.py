@@ -53,9 +53,14 @@ def next(i, json):
 
 def lex(json):
     # Convert a JSON string to a 'tokens' iterable
+    if json[0] == "{" and json[-1] == "}":
+        pass
+    elif json[0] == "[" and json[-1] == "]":
+        pass
+    else:
+        raise ValueError(f"""JSON must begin and end with curly braces or
+                         brackets. start={json[0]}, end={json[-1]}""")
     i = 0
-    if json[0] != "{" or json[-1] != "}":
-        raise ValueError(f"JSON must begin and end with curly braces. start={json[0]}, end={json[-1]}")
     tokens = []
     while i < len(json):
         i, token = next(i, json)
@@ -121,11 +126,19 @@ def parse_obj(tokens, i=1):
         i += 1
     return i, obj
 
+def parse(tokens):
+    if tokens[0] == "{":
+        return parse_obj(tokens)
+    elif tokens[0] == "[":
+        return parse_array(1, tokens)
+    raise ValueError(f"""invalid JSON beginning or end char: begin={tokens[0]},
+                     end={tokens[-1]}""")
+
 if __name__ == "__main__":
     with open(sys.argv[1]) as f:
         json = f.read()
     # multiple files end in Unicode 10 control code
     json = json[:-1]
     tokens = lex(json)
-    obj = parse_obj(tokens)
+    obj = parse(tokens)
     print(obj[1])

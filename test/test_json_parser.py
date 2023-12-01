@@ -23,6 +23,12 @@ def test_leading_zero_error():
         json_parser.lex(json)
     assert "JSON numbers cannot have leading zeroes" in str(excinfo.value)
 
+def test_parse_array_without_objects():
+    json = "[1, 2, 3]"
+    tokens = json_parser.lex(json)
+    _, obj = json_parser.parse(tokens)
+    assert obj == [1.0, 2.0, 3.0]
+
 def test_parsing():
     json = """{"status":"SpaceTraders","version":"v2.1.2","resetDate":
 "2023-11-18","description":"SpaceTraders","stats":{"agents":1000,"ships":2637,
