@@ -8,26 +8,21 @@ def next(i, json):
     while i < len(json):
         orig_i = i
         if json[i] in ("[", "]", "{", "}", ":", ","):
-            i += 1
-            return (i, json[i-1])
+            return (i + 1, json[i])
         elif json[i] == '"':
             # TODO: allow escaped quotation marks and other characters
             i += 1
             while json[i] != '"':
                 i += 1
-            i += 1
             # Omit quotation marks from returned string
-            return (i, json[orig_i + 1:i - 1])
+            return (i + 1, json[orig_i + 1:i])
         elif json[i].isalpha():
             if json[i:i + 4] == "true":
-                i += 4
-                return (i, True)
+                return (i + 4, True)
             elif json[i:i + 4] == "null":
-                i += 4
-                return (i, None)
+                return (i + 4, None)
             elif json[i:i + 5] == "false":
-                i += 5
-                return (i, False)
+                return (i + 5, False)
             else:
                 i += 1
         elif json[i].isdigit() or (json[i] == "-" and json[i + 1].isdigit()):
