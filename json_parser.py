@@ -81,14 +81,13 @@ def parse_array(i, tokens):
                 raise ValueError(
                         "parse_array() did not find delimiter or end of array"
                 )
+            i += 1
         else:
-            # Increment i to prevent infinite loop
             i += 1
     if i >= len(tokens):
         raise ValueError("parse_array() did not find end of array")
 
 def parse_obj(tokens, i=1):
-    # TODO: allow first/last character to be [ and ]
     obj = {}
     key = ""
     while i < len(tokens):
