@@ -31,9 +31,12 @@ def next(i, json):
             else:
                 i += 1
         elif json[i].isdigit():
+            if json[i] == 0:
+                raise ValueError("JSON numbers cannot have leading zeroes")
             while json[i].isdigit():
                 i += 1
             # Check for floats
+            # TODO: check for scientific notation
             if json[i] == "." and json[i + 1].isdigit():
                 i += 1
                 while json[i].isdigit():
@@ -48,7 +51,7 @@ def lex(json):
     # Convert a JSON string to a 'tokens' iterable
     i = 0
     if json[0] != "{" or json[-1] != "}":
-        exit(f"JSON must begin and end with curly braces. start={json[0]}, end={json[-1]}")
+        raise ValueError(f"JSON must begin and end with curly braces. start={json[0]}, end={json[-1]}")
     tokens = []
     while i < len(json):
         i, token = next(i, json)
