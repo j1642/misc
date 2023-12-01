@@ -10,11 +10,11 @@ def test_lex_simple():
 
 def test_lex_array():
     # Lex array of booleans, null, integer, float,
-    # scientific notation, negative int
-    json = """{"list":[true, false, null, 21, 33.0, 10.01e-1, -5]}"""
+    # scientific notation, negative int, float starting with zero
+    json = """{"list":[true, false, null, 21, 33.0, 10.01e-1, -5, 0.1]}"""
     tokens = json_parser.lex(json)
-    assert tokens == ["{", "list", ":",
-        "[", True, ",", False, ",", None, ",", 21.0, ",", 33.0, ",", 1.001, ",", -5.0, "]", "}"]
+    assert tokens == ["{", "list", ":", "[", True, ",", False, ",", None, ",",
+                      21.0, ",", 33.0, ",", 1.001, ",", -5.0, ",", 0.1, "]", "}"]
 
 def test_leading_zero_error():
     # Numbers with leading zeroes cause an error

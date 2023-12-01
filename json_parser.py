@@ -34,7 +34,8 @@ def next(i, json):
         elif json[i].isdigit() or (json[i] == "-" and json[i + 1].isdigit()):
             if json[i] == "-":
                 i += 1
-            if json[i] == "0":
+            # Allow floats like 0.1
+            if json[i] == "0" and json[i + 1] != ".":
                 raise ValueError("JSON numbers cannot have leading zeroes")
             while json[i].isdigit():
                 i += 1
