@@ -1,4 +1,9 @@
-"""Convert a JSON string to a python object"""
+"""
+Convert a JSON file to a Python object.
+
+Use: python json_parser.py json_file.txt
+"""
+
 import sys
 
 def next(i, json):
