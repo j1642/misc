@@ -7,11 +7,11 @@ def test_lex_simple():
     assert tokens == ["{", "status", ":", "SpaceTraders", "}"] 
 
 def test_lex_array():
-    # Lex array of booleans, null, and integer
-    json = """{"list":[true, false, null, 21]}"""
+    # Lex array of booleans, null, integer, float
+    json = """{"list":[true, false, null, 21, 33.0]}"""
     tokens = json_parser.lex(json)
     assert tokens == ["{", "list", ":",
-        "[", True, ",", False, ",", None, ",", "21", "]", "}"]
+        "[", True, ",", False, ",", None, ",", 21.0, ",", 33.0, "]", "}"]
 
 def test_parsing():
     json = """{"status":"SpaceTraders","version":"v2.1.2","resetDate":

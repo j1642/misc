@@ -10,6 +10,7 @@ def next(i, json):
             i += 1
             return (i, json[i-1])
         elif json[i] == '"':
+            # TODO: allow escaped quotation marks and other characters
             i += 1
             while json[i] != '"':
                 i += 1
@@ -29,20 +30,24 @@ def next(i, json):
             else:
                 i += 1
         elif json[i].isdigit():
-            # TODO: add floats, scientific notation
             while json[i].isdigit():
                 i += 1
-            return (i, json[orig_i:i])
+            # Check for floats
+            if json[i] == "." and json[i + 1].isdigit():
+                i += 1
+                while json[i].isdigit():
+                    i += 1
+            return (i, float(json[orig_i:i]))
         else:
             i += 1
     if i >= len(json):
         return ValueError("next() did not return")
 
 def lex(json):
-    # Convert JSON string to tokens iterable
+    # Convert a JSON string to a 'tokens' iterable
     i = 0
     if json[0] != "{" or json[-1] != "}":
-        exit("error: JSON must begin and end with '{' and '}', respectively")
+        exit(f"JSON must begin and end with curly braces. start={json[0]}, end={json[-1]}")
     tokens = []
     while i < len(json):
         i, token = next(i, json)
@@ -50,7 +55,7 @@ def lex(json):
     return tokens
 
 def parse_array(i, tokens):
-    # Convert tokens iterable to Python object
+    # Convert the 'tokens' iterable to Python object
     values = []
     while i < len(tokens):
         # Do not increment i here, increment at end of the parse_obj() loop
@@ -75,6 +80,7 @@ def parse_array(i, tokens):
         raise ValueError("parse_array() did not find end of array")
 
 def parse_obj(tokens, i=1):
+    # TODO: allow first/last character to be [ and ]
     obj = {}
     key = ""
     while i < len(tokens):
