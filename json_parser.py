@@ -29,7 +29,8 @@ def next(i, json):
             elif json[i:i + 5] == "false":
                 return (i + 5, False)
             else:
-                i += 1
+                raise ValueError(f"""invalid string is missing quotation marks:
+                                 {json[i:i+10]}""")
         elif json[i].isdigit() or (json[i] == "-" and json[i + 1].isdigit()):
             if json[i] == "-":
                 i += 1
@@ -92,8 +93,13 @@ def parse_array(i, tokens):
                         "parse_array() did not find delimiter or end of array"
                 )
             i += 1
-        else:
+        elif tokens[i] == ",":
+            if tokens[i + 1] == "]":
+                raise ValueError("JSON spec disallows trailing comma in arrays")
             i += 1
+        else:
+            raise ValueError("unexpected value:", tokens[i])
+
     if i >= len(tokens):
         raise ValueError("parse_array() did not find end of array")
 
