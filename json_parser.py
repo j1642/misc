@@ -65,15 +65,15 @@ def parse_array(i, tokens):
         elif tokens[i] == "{":
             i, obj = parse_obj(tokens, i + 1)
             values.append(obj)
-        elif tokens[i].isalnum():
+        elif tokens[i] == "[":
+            i, arr = parse_array(i + 1, tokens)
+            values.append(arr)
+        elif tokens[i] != ",":
             values.append(tokens[i])
             if tokens[i + 1] != "," and tokens[i + 1] != "]":
                 raise ValueError(
                         "parse_array() did not find delimiter or end of array"
                 )
-        elif tokens[i] == "[":
-            i, arr = parse_array(i + 1, tokens)
-            values.append(arr)
         else:
             # Increment i to prevent infinite loop
             i += 1
