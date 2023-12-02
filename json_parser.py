@@ -29,8 +29,6 @@ def lex(json):
             i += 1
             appended = False
             while True:
-                if appended:
-                    break
                 while json[i] != '"':
                     if json[i] == "\\":
                         paired_backslash ^= True
@@ -62,6 +60,8 @@ def lex(json):
                     tokens.append(token)
                     appended = True
                 i += 1
+                if appended:
+                    break
         elif json[i].isalpha():
             if json[i:i + 4] == "true":
                 i += 4
