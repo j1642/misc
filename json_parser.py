@@ -62,8 +62,6 @@ def lex(json):
                     tokens.append(token)
                     appended = True
                 i += 1
-            if not appended:
-                tokens.append(json[orig_i + 1:i])
         elif json[i].isalpha():
             if json[i:i + 4] == "true":
                 i += 4
