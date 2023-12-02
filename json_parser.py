@@ -40,7 +40,6 @@ def lex(json):
                                              f"character: {json[i + 1]}")
                         if not paired_backslash:
                             remove_indexes.append(i)
-                    # Next two lines are new, not commited. Is it needed?
                     elif paired_backslash is False:
                        paired_backslash = True
                     i += 1
@@ -92,7 +91,9 @@ def lex(json):
             while json[i].isdigit():
                 i += 1
             # Check for floats
-            if json[i] == "." and json[i + 1].isdigit():
+            if json[i] == ".":
+                if not json[i + 1].isdigit():
+                    raise ValueError(f"decimal point not followed by digits: idx={i}")
                 i += 1
                 while json[i].isdigit():
                     i += 1
@@ -104,8 +105,10 @@ def lex(json):
                     while json[i].isdigit():
                         i += 1
             tokens.append(float(json[orig_i:i]))
-        else:
+        elif json[i].strip() == "":
             i += 1
+        else:
+            raise ValueError(f"unexpected character={json[i]} in '{json[i:i+10]}'")
 
     return tokens
 
