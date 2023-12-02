@@ -15,9 +15,41 @@ def next(i, json):
         if json[i] in ("[", "]", "{", "}", ":", ","):
             return (i + 1, json[i])
         elif json[i] == '"':
-            # TODO: allow escaped quotation marks and other characters
+            # TODO: refactor lexing escape characters
+            paired_backslash = True
+            remove_indexes = []
             i += 1
-            while json[i] != '"':
+            while True:
+                while json[i] != '"':
+                    if json[i] == "\\":
+                        paired_backslash ^= True
+                        if json[i + 1] not in '"\\/bfnrtu':
+                            raise ValueError("invalid JSON backslash found")
+                        remove_indexes.append(i)
+                    i += 1
+                assert json[i] == '"'
+                # Return token when an unescaped quotation mark is found
+                # TODO: check escaped unicode values \uABCD
+                if paired_backslash or json[i-1] != "\\":
+                    token = json[orig_i + 1:i]
+                    if remove_indexes:
+                        token = list(token)
+                        # zip() probably has a higher runtime cost
+                        control_chars = (('b', '\b'), ('f', '\f'), ('n', '\n'),
+                                         ('r', '\r'), ('t', '\t'))
+                    # orig_i is index of initial ", so use orig_i + 1
+                    for idx in remove_indexes:
+                        if json[idx + 1] == '"' or json[idx + 1] == "/":
+                            del token[idx - (orig_i + 1)]
+                            continue
+                        for letter, control_char in control_chars:
+                            if json[idx + 1] == letter:
+                                token[idx - orig_i] = control_char
+                                del token[idx - (orig_i + 1)]
+                    if isinstance(token, list):
+                        token = ''.join(token)
+                    # remove \ from token?
+                    return (i + 1, token)
                 i += 1
             # Omit quotation marks from returned string
             return (i + 1, json[orig_i + 1:i])

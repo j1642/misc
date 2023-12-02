@@ -101,3 +101,11 @@ def test_full_parsing():
                        {"name":"Account Portal (Coming Soon)","url":"https://my.spacetraders.io/"},
                        {"name":"Twitter","url":"https://twitter.com/SpaceTradersAPI"}]
     }
+
+def test_lex_escaped_quotation_mark():
+    json = r"""["word", "\\", "\"escaped", "\t"]"""
+    tokens = json_parser.lex(json)
+    print("generated:", tokens)
+    expected = ["[", "word", ",", "\\", ",", '"escaped', ",", "\t", "]"]
+    print("expected: ", expected)
+    assert tokens == expected
