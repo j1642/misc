@@ -169,7 +169,8 @@ def parse_obj(tokens, i=1):
         i += 1
     return i, obj
 
-def parse(tokens):
+def parse(json):
+    tokens = lex(json)
     if tokens[0] == "{":
         return parse_obj(tokens)
     elif tokens[0] == "[":
