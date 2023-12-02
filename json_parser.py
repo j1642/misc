@@ -95,8 +95,6 @@ def lex(json):
                         i += 1
                     while json[i].isdigit():
                         i += 1
-
-            i = i
             tokens.append(float(json[orig_i:i]))
         else:
             i += 1
