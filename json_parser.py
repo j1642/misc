@@ -19,7 +19,7 @@ def lex(json):
     tokens = []
     while i < len(json):
         orig_i = i
-        if json[i] in ("[", "]", "{", "}", ":", ","):
+        if json[i] in "[]{}:,":
             tokens.append(json[i])
             i += 1
         elif json[i] == '"':
