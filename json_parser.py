@@ -3,23 +3,34 @@ Convert a JSON file to a Python object.
 
 Use: python json_parser.py json_file.txt
 """
-
 import sys
+import time
 
-def next(i, json):
-    # Get next token
-    # id(json) is the same in lex() and next(), cool pass by reference
-    # Loop prevents excess calls to next() if lots of whitespace is found
+def lex(json):
+    # Convert a JSON string to a 'tokens' iterable
+    if json[0] == "{" and json[-1] == "}":
+        pass
+    elif json[0] == "[" and json[-1] == "]":
+        pass
+    else:
+        raise ValueError(f"""JSON must begin and end with curly braces or
+                         brackets. start={json[0]}, end={json[-1]}""")
+    i = 0
+    tokens = []
     while i < len(json):
         orig_i = i
         if json[i] in ("[", "]", "{", "}", ":", ","):
-            return (i + 1, json[i])
+            tokens.append(json[i])
+            i += 1
         elif json[i] == '"':
             # TODO: refactor lexing escape characters
             paired_backslash = True
             remove_indexes = []
             i += 1
+            appended = False
             while True:
+                if appended:
+                    break
                 while json[i] != '"':
                     if json[i] == "\\":
                         paired_backslash ^= True
@@ -28,7 +39,7 @@ def next(i, json):
                         remove_indexes.append(i)
                     i += 1
                 assert json[i] == '"'
-                # Return token when an unescaped quotation mark is found
+                # Append token when an unescaped quotation mark is found
                 # TODO: check escaped unicode values \uABCD
                 if paired_backslash or json[i-1] != "\\":
                     token = json[orig_i + 1:i]
@@ -48,18 +59,21 @@ def next(i, json):
                                 del token[idx - (orig_i + 1)]
                     if isinstance(token, list):
                         token = ''.join(token)
-                    # remove \ from token?
-                    return (i + 1, token)
+                    tokens.append(token)
+                    appended = True
                 i += 1
-            # Omit quotation marks from returned string
-            return (i + 1, json[orig_i + 1:i])
+            if not appended:
+                tokens.append(json[orig_i + 1:i])
         elif json[i].isalpha():
             if json[i:i + 4] == "true":
-                return (i + 4, True)
+                i += 4
+                tokens.append(True)
             elif json[i:i + 4] == "null":
-                return (i + 4, None)
+                i += 4
+                tokens.append(None)
             elif json[i:i + 5] == "false":
-                return (i + 5, False)
+                i += 5
+                tokens.append(False)
             else:
                 raise ValueError(f"""invalid string is missing quotation marks:
                                  {json[i:i+10]}""")
@@ -84,26 +98,11 @@ def next(i, json):
                     while json[i].isdigit():
                         i += 1
 
-            return (i, float(json[orig_i:i]))
+            i = i
+            tokens.append(float(json[orig_i:i]))
         else:
             i += 1
-    if i >= len(json):
-        return ValueError("next() did not return")
 
-def lex(json):
-    # Convert a JSON string to a 'tokens' iterable
-    if json[0] == "{" and json[-1] == "}":
-        pass
-    elif json[0] == "[" and json[-1] == "]":
-        pass
-    else:
-        raise ValueError(f"""JSON must begin and end with curly braces or
-                         brackets. start={json[0]}, end={json[-1]}""")
-    i = 0
-    tokens = []
-    while i < len(json):
-        i, token = next(i, json)
-        tokens.append(token)
     return tokens
 
 def parse_array(i, tokens):
