@@ -24,22 +24,30 @@ def lex(json):
             i += 1
         elif json[i] == '"':
             # TODO: refactor lexing escape characters
-            paired_backslash = True
+            paired_backslash = None
             remove_indexes = []
             i += 1
             appended = False
             while True:
                 while json[i] != '"':
                     if json[i] == "\\":
-                        paired_backslash ^= True
-                        if json[i + 1] not in '"\\/bfnrtu':
-                            raise ValueError("invalid JSON backslash found")
-                        remove_indexes.append(i)
+                        if paired_backslash is None:
+                            paired_backslash = False
+                        else:
+                            paired_backslash ^= True
+                        if json[i + 1] not in '"\\/bfnrtu' and not paired_backslash:
+                            raise ValueError("backslash followed by invalid",
+                                             f"character: {json[i + 1]}")
+                        if not paired_backslash:
+                            remove_indexes.append(i)
+                    # Next two lines are new, not commited. Is it needed?
+                    elif paired_backslash is False:
+                       paired_backslash = True
                     i += 1
                 assert json[i] == '"'
                 # Append token when an unescaped quotation mark is found
                 # TODO: check escaped unicode values \uABCD
-                if paired_backslash or json[i-1] != "\\":
+                if json[i-1] != "\\" or paired_backslash:
                     token = json[orig_i + 1:i]
                     if remove_indexes:
                         token = list(token)
@@ -47,8 +55,8 @@ def lex(json):
                         control_chars = (('b', '\b'), ('f', '\f'), ('n', '\n'),
                                          ('r', '\r'), ('t', '\t'))
                     # orig_i is index of initial ", so use orig_i + 1
-                    for idx in remove_indexes:
-                        if json[idx + 1] == '"' or json[idx + 1] == "/":
+                    for idx in remove_indexes[::-1]:
+                        if json[idx + 1] in '"/\\':
                             del token[idx - (orig_i + 1)]
                             continue
                         for letter, control_char in control_chars:

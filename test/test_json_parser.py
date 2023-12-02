@@ -100,9 +100,9 @@ def test_full_parsing():
     }
 
 def test_lex_escaped_quotation_mark():
-    json = r"""["word", "\\", "\"escaped", "\t"]"""
+    json = r"""["word", "\\", "\\\\", "\"escaped", "\t"]"""
     tokens = json_parser.lex(json)
     print("generated:", tokens)
-    expected = ["[", "word", ",", "\\", ",", '"escaped', ",", "\t", "]"]
+    expected = ["[", "word", ",", "\\", ",", "\\\\", ",", '"escaped', ",", "\t", "]"]
     print("expected: ", expected)
     assert tokens == expected
