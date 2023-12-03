@@ -99,10 +99,10 @@ def test_full_parsing():
                        {"name":"Twitter","url":"https://twitter.com/SpaceTradersAPI"}]
     }
 
-def test_lex_escaped_quotation_mark():
-    json = r"""["word", "\\", "\\\\", "\"escaped", "\t"]"""
+def test_lex_escaped_characters():
+    json = r"""["word", "\\", "\\\\", "\"escaped", "\t", "\u0ab4"]"""
     tokens = json_parser.lex(json)
     print("generated:", tokens)
-    expected = ["[", "word", ",", "\\", ",", "\\\\", ",", '"escaped', ",", "\t", "]"]
+    expected = ["[", "word", ",", "\\", ",", "\\\\", ",", '"escaped', ",", "\t", ",", "\u0ab4", "]"]
     print("expected: ", expected)
     assert tokens == expected

@@ -28,6 +28,7 @@ def lex(json):
             remove_indexes = []
             i += 1
             appended = False
+            # The outer loop ignores any escaped "
             while True:
                 while json[i] != '"':
                     if json[i] == "\\":
@@ -38,6 +39,11 @@ def lex(json):
                         if json[i + 1] not in '"\\/bfnrtu' and not paired_backslash:
                             raise ValueError("backslash followed by invalid",
                                              f"character: {json[i + 1]}")
+                        if json[i + 1] == 'u':
+                            for j in range(2, 6):
+                                if json[i + j].lower() not in 'abcdef0123456789':
+                                    raise ValueError('invalid escaped Unicode:',
+                                                     f'{json[i:i+6]}')
                         if not paired_backslash:
                             remove_indexes.append(i)
                     elif paired_backslash is False:
@@ -53,15 +59,25 @@ def lex(json):
                         # zip() probably has a higher runtime cost
                         control_chars = (('b', '\b'), ('f', '\f'), ('n', '\n'),
                                          ('r', '\r'), ('t', '\t'))
-                    # orig_i is index of initial ", so use orig_i + 1
                     for idx in remove_indexes[::-1]:
                         if json[idx + 1] in '"/\\':
+                            # orig_i is index of initial ", orig_i + 1 index is \
                             del token[idx - (orig_i + 1)]
                             continue
+                        elif json[idx + 1] == 'u':
+                            adj_idx = idx - (orig_i + 1)
+                            hex_digits = ''.join(token[adj_idx + 2:adj_idx + 6])
+                            unicode_char = chr(int(hex_digits, 16))
+                            token[adj_idx] = unicode_char
+                            del token[adj_idx + 1:adj_idx + 6]
+                            continue
+
                         for letter, control_char in control_chars:
                             if json[idx + 1] == letter:
                                 token[idx - orig_i] = control_char
                                 del token[idx - (orig_i + 1)]
+                                break
+
                     if isinstance(token, list):
                         token = ''.join(token)
                     tokens.append(token)
