@@ -1,0 +1,1 @@
+gcc -Wall -Wextra -std=c2x -pedantic -fPIC -shared -o parse_funcs.so parse_funcs.c -I/usr/include/python3.10
