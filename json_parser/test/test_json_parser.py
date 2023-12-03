@@ -106,3 +106,8 @@ def test_lex_escaped_characters():
     expected = ["[", "word", ",", "\\", ",", "\\\\", ",", '"escaped', ",", "\t", ",", "\u0ab4", "]"]
     print("expected: ", expected)
     assert tokens == expected
+
+def test_parse_high_code_points():
+    json = """{"இ": "Σ"}"""
+    _, obj = json_parser.parse(json)
+    assert obj == {"இ": "Σ"}
