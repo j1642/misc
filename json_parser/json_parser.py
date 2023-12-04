@@ -3,10 +3,14 @@ Convert a JSON file to a Python object.
 
 Use: python json_parser.py json_file.txt
 """
+import cProfile
 import sys
 import time
+import ctypes
 
-def lex(json):
+parse_funcs = ctypes.CDLL('./parse_funcs.so')
+
+def lex(json, wchar_json):
     # Convert a JSON string to a 'tokens' iterable
     if json[0] == "{" and json[-1] == "}":
         pass
@@ -51,7 +55,6 @@ def lex(json):
                     i += 1
                 assert json[i] == '"'
                 # Append token when an unescaped quotation mark is found
-                # TODO: check escaped unicode values \uABCD
                 if json[i-1] != "\\" or paired_backslash:
                     token = json[orig_i + 1:i]
                     if remove_indexes:
@@ -99,28 +102,9 @@ def lex(json):
                 raise ValueError(f"""invalid string is missing quotation marks:
                                  {json[i:i+10]}""")
         elif json[i].isdigit() or (json[i] == "-" and json[i + 1].isdigit()):
-            if json[i] == "-":
-                i += 1
-            # Allow floats like 0.1
-            if json[i] == "0" and json[i + 1] != ".":
-                raise ValueError("JSON numbers cannot have leading zeroes")
-            while json[i].isdigit():
-                i += 1
-            # Check for floats
-            if json[i] == ".":
-                if not json[i + 1].isdigit():
-                    raise ValueError(f"decimal point not followed by digits: idx={i}")
-                i += 1
-                while json[i].isdigit():
-                    i += 1
-                # Check for scientific notation
-                if json[i] == "e" or json[i] == "E":
-                    i += 1
-                    if json[i] == "+" or json[i] == "-":
-                        i += 1
-                    while json[i].isdigit():
-                        i += 1
-            tokens.append(float(json[orig_i:i]))
+            end_i = parse_funcs.lex_num(i, wchar_json, len(json))
+            tokens.append(float(json[i:end_i]))
+            i = end_i
         elif json[i].strip() == "":
             i += 1
         else:
@@ -193,7 +177,8 @@ def parse_obj(tokens, i=1):
     return i, obj
 
 def parse(json):
-    tokens = lex(json)
+    wchar_json = ctypes.c_wchar_p(json)
+    tokens = lex(json, wchar_json)
     if tokens[0] == "{":
         return parse_obj(tokens)
     elif tokens[0] == "[":
@@ -206,6 +191,19 @@ if __name__ == "__main__":
         json = f.read()
     # multiple files end in Unicode 10 control code
     json = json[:-1]
-    tokens = lex(json)
-    obj = parse(tokens)
-    print(obj[1])
+    #pr = cProfile.Profile()
+    #pr.enable()
+    start = time.time()
+    for _ in range(100):
+        obj = parse(json)
+    #pr.disable()
+    #pr.print_stats()
+    elapsed = time.time() - start
+    print(obj)
+    print("elapsed:", elapsed)
+
+    # Time per 100 iterations of lexing and parsing (seconds)
+    # 1.33 - lots of next() calls
+    # 1.18 - combined lex() and next()
+    # 1.27 - escaped characters implemented (full JSON spec supported)
+    # 1.25 - call C function to lex numbers

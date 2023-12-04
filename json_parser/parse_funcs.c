@@ -1,22 +1,15 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
-int parse_num(int i, char *json) {
-    int len = strlen(json);
-    //printf("i=%d, json=%s\n", i, json); // prints sigma correctly
-    wchar_t wc_json[len * 2];
-    // Count characters in a string, accounting for multi-bytes
-    size_t wc_len = mbstowcs(wc_json, json, len * 2);
-
+// Wide chars maintain string index equality between Python and C
+int lex_num(int i, wchar_t *wc_json, size_t wc_len) {
     if (wc_json[i] == '-') {
-        assert('0' <= wc_json[i + 1] && wc_json[i + 1] <= '9');
         i++;
-    } else {
-        assert('0' <= wc_json[i] && wc_json[i] <= '9');
     }
+    assert('0' <= wc_json[i] && wc_json[i] <= '9');
     if (wc_json[i] == '0' && wc_json[i + 1] != '.') {
         fprintf(stderr, "%s", "error: JSON numbers cannot have leading zeroes\n");
-        exit(1);
+        //exit(1);
     }
     while ('0' <= wc_json[i] && wc_json[i] <= '9') {
         i++;
@@ -31,7 +24,6 @@ int parse_num(int i, char *json) {
             i++;
         }
         if (wc_json[i] == 'e' || wc_json[i] == 'E') {
-            //printf("entered exponent if\n");
             i++;
             if (wc_json[i] == '+' || wc_json[i] == '-') {
                 i++;
@@ -46,4 +38,12 @@ int parse_num(int i, char *json) {
         exit(1);
     }
     return i;
+}
+
+void print_string(size_t len, wchar_t *wchar) {
+    printf("starting print\n");
+    for (unsigned long i = 0; i < len; i++) {
+        printf("%lc", wchar[i]);
+    }
+    printf("\n");
 }

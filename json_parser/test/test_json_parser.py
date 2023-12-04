@@ -1,3 +1,4 @@
+import ctypes
 import pytest
 
 import json_parser
@@ -5,14 +6,14 @@ import json_parser
 def test_lex_simple():
     # Lex the simplest JSON case
     json = """{"status":"SpaceTraders"}"""
-    tokens = json_parser.lex(json)
+    tokens = json_parser.lex(json, "")
     assert tokens == ["{", "status", ":", "SpaceTraders", "}"] 
 
 def test_lex_array():
     # Lex array of booleans, null, integer, float,
     # scientific notation, negative int, float starting with zero
     json = """{"list":[true, false, null, 21, 33.0, 10.01e-1, -5, 0.1]}"""
-    tokens = json_parser.lex(json)
+    tokens = json_parser.lex(json, ctypes.c_wchar_p(json))
     assert tokens == ["{", "list", ":", "[", True, ",", False, ",", None, ",",
                       21.0, ",", 33.0, ",", 1.001, ",", -5.0, ",", 0.1, "]", "}"]
 
@@ -20,7 +21,7 @@ def test_leading_zero_error():
     # Numbers with leading zeroes cause an error
     json = """{"key":05}"""
     with pytest.raises(ValueError) as excinfo:
-        json_parser.lex(json)
+        json_parser.lex(json, ctypes.c_wchar_p(json))
     assert "JSON numbers cannot have leading zeroes" in str(excinfo.value)
 
 def test_parse_array_without_objects():
@@ -101,7 +102,7 @@ def test_full_parsing():
 
 def test_lex_escaped_characters():
     json = r"""["word", "\\", "\\\\", "\"escaped", "\t", "\u0ab4"]"""
-    tokens = json_parser.lex(json)
+    tokens = json_parser.lex(json, ctypes.c_wchar_p(json))
     print("generated:", tokens)
     expected = ["[", "word", ",", "\\", ",", "\\\\", ",", '"escaped', ",", "\t", ",", "\u0ab4", "]"]
     print("expected: ", expected)
